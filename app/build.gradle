@@ -1,0 +1,174 @@
+plugins {
+    id 'com.android.application'
+    // Add the Google services Gradle plugin
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
+}
+
+android {
+    //加载资源
+    Properties properties = new Properties()
+    InputStream inputStream = project.rootProject.file('local.properties').newDataInputStream()
+    properties.load(inputStream)
+
+    signingConfigs {
+        debug {
+            storeFile file(properties.getProperty('DEBUG_STORE_FILE_PATH', './keystore/sdkdemo.jks'))
+            storePassword properties.getProperty('DEBUG_STORE_PASSWORD', '123456')
+            keyAlias = properties.getProperty('DEBUG_KEY_ALIAS', 'easemob')
+            keyPassword properties.getProperty('DEBUG_KEY_PASSWORD', '123456')
+        }
+        release {
+            storeFile file(properties.getProperty('DEBUG_STORE_FILE_PATH', './keystore/sdkdemo.jks'))
+            storePassword properties.getProperty('DEBUG_STORE_PASSWORD', '123456')
+            keyAlias = properties.getProperty('DEBUG_KEY_ALIAS', 'easemob')
+            keyPassword properties.getProperty('DEBUG_KEY_PASSWORD', '123456')
+        }
+    }
+    compileSdkVersion 33
+    buildToolsVersion "30.0.3"
+    defaultConfig {
+        applicationId "com.hyphenate.chatdemo"
+        minSdkVersion 21
+        targetSdkVersion 33
+        versionCode 103
+        versionName "4.0.3"
+        multiDexEnabled true
+
+        //指定room.schemaLocation生成的文件路径  处理Room 警告 Schema export Error
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = [
+                        "room.schemaLocation"  : "$projectDir/schemas".toString(),
+                        "room.incremental"     : "true",
+                        "room.expandProjection": "true"]
+            }
+        }
+        // If you use your own Agora Chat appkey, you should deploy your own App Server.
+        // See:verification code
+        buildConfigField("String", "APP_SERVER_PROTOCOL", "\"https\"")
+        buildConfigField("String", "APP_SERVER_DOMAIN", "\"a1.easemob.com\"")
+        buildConfigField("String", "APP_BASE_USER", "\"/inside/app/user/\"")
+        buildConfigField("String", "APP_SERVER_LOGIN", "\"login/V2\"")
+        buildConfigField("String", "APP_SERVER_REGISTER", "\"register\"")
+        buildConfigField("String", "APP_SERVE_CHECK_RESET", "\"reset/password\"")
+        buildConfigField("String", "APP_SERVE_CHANGE_PWD", "\"/password\"")
+        buildConfigField("String", "APP_SEND_SMS_FROM_SERVER", "\"/inside/app/sms/send\"")
+        buildConfigField("String", "APP_VERIFICATION_CODE", "\"/inside/app/image/\"")
+
+
+        manifestPlaceholders = [EASEMOB_APPKEY       : properties.getProperty("EASEMOB_APPKEY", "******"),
+                                VIVO_PUSH_APPKEY     : properties.getProperty("VIVO_PUSH_APPKEY", "******"),
+                                VIVO_PUSH_APPID      : properties.getProperty("VIVO_PUSH_APPID", "******"),
+                                HONOR_PUSH_APPID     : properties.getProperty("HONOR_PUSH_APPID", "******"),
+                                BAIDU_LOCATION_APPKEY: properties.getProperty("BAIDU_LOCATION_APPKEY", "******")
+        ]
+        ndk {
+            abiFilters "arm64-v8a", "armeabi-v7a"
+        }
+        //用于设置使用as打包so时指定输出目录
+        externalNativeBuild {
+            ndkBuild {
+//                arguments "NDK_LIBS_OUT=libs", "all"
+                abiFilters "arm64-v8a", "armeabi-v7a"
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+
+        debug {
+            //applicationIdSuffix ".debug"
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    //use legacy for android 6.0，SDK3.6.8后移除
+    //useLibrary 'org.apache.http.legacy'
+    //自3.6.0开始需要java8的支持
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildFeatures {
+        viewBinding = true
+    }
+    namespace 'com.hyphenate.chatdemo'
+    lint {
+        abortOnError false
+    }
+
+    //打开注释后，可以直接在studio里查看和编辑emclient-linux里的代码
+//    externalNativeBuild {
+//        ndkBuild {
+//            path file('jni/Android.mk')
+//        }
+//    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    //ViewModel and LiveData
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+
+    // google bottom navigation bar
+    implementation 'com.ashokvarma.android:bottom-navigation-bar:2.1.0'
+    // resolve 64k limit
+    implementation 'com.android.support:multidex:1.0.3'
+
+    //oppo push需添加以下依赖
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    implementation 'androidx.annotation:annotation:1.6.0'
+    // Google firebase cloud messaging
+    // Import the BoM for the Firebase platform
+    implementation platform('com.google.firebase:firebase-bom:28.2.1')
+
+    // Declare the dependencies for the Firebase Cloud Messaging and Analytics libraries
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation 'com.google.firebase:firebase-messaging'
+    implementation 'com.google.firebase:firebase-analytics'
+
+    // smart refresh
+    api 'io.github.scwang90:refresh-layout-kernel:2.0.5'
+    api 'io.github.scwang90:refresh-header-classics:2.0.5'
+    api 'io.github.scwang90:refresh-footer-classics:2.0.5'
+
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+    // room
+    implementation "androidx.room:room-runtime:2.4.0-alpha04"
+    annotationProcessor "androidx.room:room-compiler:2.4.0-alpha04"
+    // parse
+    implementation 'com.parse:parse-android:1.13.1'
+
+    implementation 'pub.devrel:easypermissions:3.0.0'
+
+    // EaseIMKit
+    implementation 'io.hyphenate:ease-im-kit:4.0.3'
+
+    // 环信IM SDK
+    implementation 'io.hyphenate:hyphenate-chat:4.0.3'
+
+    //EaseCallKit依赖，必须添加环信IM SDK
+    implementation 'io.hyphenate:ease-call-kit:4.0.3'
+
+    constraints {
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0") {
+            because("kotlin-stdlib-jdk7 is now a part of kotlin-stdlib")
+        }
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0") {
+            because("kotlin-stdlib-jdk8 is now a part of kotlin-stdlib")
+        }
+    }
+
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}

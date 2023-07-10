@@ -1,0 +1,45 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+    dependencies {
+        // noinspection GradlePluginVersion
+        classpath 'com.android.tools.build:gradle:7.4.0'
+        // Make sure that you have the Google services Gradle plugin dependency
+        classpath 'com.google.gms:google-services:4.3.15'
+        // Add the dependency for the Crashlytics Gradle plugin
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.6'
+    }
+}
+
+plugins {
+    id 'com.android.application' version '7.4.1' apply false
+    id 'com.android.library' version '7.4.1' apply false
+}
+
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+}
+ext{
+//    PUBLISH_GROUP_ID = 'com.hyphenate'
+//    PUBLISH_ARTIFACT_ID = 'ease-im-kit'
+//    PUBLISH_VERSION = '1.0.0'
+    if(!project.hasProperty('isAarRelease')){
+        isAarRelease = false;
+    }
+    if(!project.hasProperty('isLite')){
+        isLite = false;
+    }
+    if(!project.hasProperty('sdkVersion')){
+        sdkVersion = '3.2.3'
+    }
+    if(!project.hasProperty('isTravis')) {
+        isTravis = false
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
